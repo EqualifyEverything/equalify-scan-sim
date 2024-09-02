@@ -1,4 +1,4 @@
-
+import '@radix-ui/themes/styles.css';
 import './App.css';
 import Sim from './components/Sim';
 
