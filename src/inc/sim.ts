@@ -1,11 +1,11 @@
-export default function scanSim() {
+export default function scanSim(
+  workers:number,
+  customersCount:number,
+  averageCustomerRequestSize:number,
+  simRuns:number
+) {
   // inputs
   let scanTime = 5; // time per scan (s)
-  let workers = 1;
-  let customersCount = 3;
-  let averageCustomerRequestSize = 5000;
-
-  let simRuns = 1;
 
   // consts
   let secsPerTick = 5; // seconds per tick (s)
@@ -89,26 +89,26 @@ export default function scanSim() {
   run();
   return new Promise((resolve, reject) => {
     resolve(true);
-  })
+  });
 }
 
 // Exponential random number generator
 function randomExponential(lambda: number) {
-    return -Math.log(1 - Math.random()) / lambda;
-  }
-  
-  // Standard Normal variate using Box-Muller transform.
-  function randn_bm(min: number, max: number, skew: number) {
-    let u = 0,
-      v = 0;
-    while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-    while (v === 0) v = Math.random();
-    let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  
-    num = num / 10.0 + 0.5; // Translate to 0 -> 1
-    if (num > 1 || num < 0) num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
-    num = Math.pow(num, skew); // Skew
-    num *= max - min; // Stretch to fill range
-    num += min; // offset to min
-    return num;
-  }
+  return -Math.log(1 - Math.random()) / lambda;
+}
+
+// Standard Normal variate using Box-Muller transform.
+function randn_bm(min: number, max: number, skew: number) {
+  let u = 0,
+    v = 0;
+  while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+  while (v === 0) v = Math.random();
+  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+
+  num = num / 10.0 + 0.5; // Translate to 0 -> 1
+  if (num > 1 || num < 0) num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
+  num = Math.pow(num, skew); // Skew
+  num *= max - min; // Stretch to fill range
+  num += min; // offset to min
+  return num;
+}
