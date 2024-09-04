@@ -1,11 +1,11 @@
-export default function scanSim() {
+export default function scanSim(
+  workers:number,
+  customersCount:number,
+  averageCustomerRequestSize:number,
+  simRuns:number
+) {
   // inputs
   let scanTime = 5; // time per scan (s)
-  let workers = 1;
-  let customersCount = 3;
-  let averageCustomerRequestSize = 5000;
-
-  let simRuns = 1;
 
   // consts
   let secsPerTick = 5; // seconds per tick (s)
