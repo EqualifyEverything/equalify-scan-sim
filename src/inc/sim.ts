@@ -46,20 +46,19 @@ export default function scanSim(
     for (let i = 0; i < customersCount - 3; i++) {
       customers.push(generateCustomer());
     }
-    console.log(customers)
   };
 
   let customerPointer = 0;
   const advanceTick = () => {
     for (let i = 0; i < workers; i++) {
       // advance the pointer
-      if (customerPointer >= customers.length - 1) {
+      customerPointer++;
+      if (customerPointer > customers.length - 1) {
         customerPointer = 0;
-      } else {
-        customerPointer++;
       }
+
       if (
-        currentTick > customers[customerPointer].arrivalTick &&
+        currentTick >= customers[customerPointer].arrivalTick &&
         customers[customerPointer].finishedTick == null
       ) {
         if (customers[customerPointer].jobsCount > 0) {
@@ -93,6 +92,15 @@ export default function scanSim(
 
   const analyseResults = () => {
     // TODO generate report
+    // get 1,500,500
+    const exampleCustomers = { '1' : 0, '500' : 0 , '5000': 0};
+    Object.keys(exampleCustomers).forEach(key => {
+      const scan = customers.find((obj)=>obj.startingJobsCount===Number(key));
+      if(scan && scan.finishedTick){
+        exampleCustomers[key as keyof typeof exampleCustomers]  = (scan.finishedTick-scan.arrivalTick)*secsPerTick;
+      }
+    });
+    console.log(exampleCustomers);
     /*
    - multiply values by secsPerTick to convert to seconds!
    - calculate average job completion time (in minutes)

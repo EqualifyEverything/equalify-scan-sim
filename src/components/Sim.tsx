@@ -87,7 +87,7 @@ export default function Sim() {
               Customers
             </Box>
             <Slider
-              min={0}
+              min={3}
               max={50}
               value={customersCount}
               onValueChange={setCustomersCount}
