@@ -18,19 +18,35 @@ export default function scanSim() {
     jobsCount: number;
     arrivalTick: number;
     finishedTick: number | null;
+    startingJobsCount: number;
   }
 
   const customers: ScanCustomer[] = [];
 
-  const provisionCustomers = () => {
-    for (let i = 0; i < customersCount; i++) {
-      let customer: ScanCustomer = {
-        jobsCount: Math.round(randn_bm(0, averageCustomerRequestSize * 2, 1)),
+  const results = {};
+
+  function generateCustomer(jobsCount?:number){
+    const jobs = jobsCount ? jobsCount : Math.round(randn_bm(0, averageCustomerRequestSize * 2, 1));
+    return {
+        jobsCount: jobs,
+        startingJobsCount: jobs,
         arrivalTick: Math.round(Math.random() * simDuration),
         finishedTick: null,
-      };
-      customers.push(customer);
     }
+  }
+
+  const provisionCustomers = () => {
+    customers.splice(0,customers.length);
+    // Control customers
+    customers.push(generateCustomer(1));
+    customers.push(generateCustomer(500));
+    customers.push(generateCustomer(5000));
+
+    // randomized cusomers
+    for (let i = 0; i < customersCount - 3; i++) {
+      customers.push(generateCustomer());
+    }
+    console.log(customers)
   };
 
   let customerPointer = 0;
@@ -67,6 +83,7 @@ export default function scanSim() {
         advanceTick();
       }
       console.log(customers);
+      // run finished, process results
       analyseResults();
     }
     let delta = performance.now() - start;
@@ -89,26 +106,26 @@ export default function scanSim() {
   run();
   return new Promise((resolve, reject) => {
     resolve(true);
-  })
+  });
 }
 
 // Exponential random number generator
 function randomExponential(lambda: number) {
-    return -Math.log(1 - Math.random()) / lambda;
-  }
-  
-  // Standard Normal variate using Box-Muller transform.
-  function randn_bm(min: number, max: number, skew: number) {
-    let u = 0,
-      v = 0;
-    while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-    while (v === 0) v = Math.random();
-    let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  
-    num = num / 10.0 + 0.5; // Translate to 0 -> 1
-    if (num > 1 || num < 0) num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
-    num = Math.pow(num, skew); // Skew
-    num *= max - min; // Stretch to fill range
-    num += min; // offset to min
-    return num;
-  }
+  return -Math.log(1 - Math.random()) / lambda;
+}
+
+// Standard Normal variate using Box-Muller transform.
+function randn_bm(min: number, max: number, skew: number) {
+  let u = 0,
+    v = 0;
+  while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+  while (v === 0) v = Math.random();
+  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+
+  num = num / 10.0 + 0.5; // Translate to 0 -> 1
+  if (num > 1 || num < 0) num = randn_bm(min, max, skew); // resample between 0 and 1 if out of range
+  num = Math.pow(num, skew); // Skew
+  num *= max - min; // Stretch to fill range
+  num += min; // offset to min
+  return num;
+}

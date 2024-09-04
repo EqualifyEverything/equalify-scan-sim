@@ -45,7 +45,7 @@ export default function Sim() {
             </Flex>
             <Flex minWidth="300px" align={"center"} gap="4" pt="2">
                 <Box width="120px" style={{fontSize:10, lineHeight: 1.2, textAlign: "left"}}>Customers</Box>
-                <Slider min={0} max={50} value={customersCount} onValueChange={setCustomersCount}></Slider>
+                <Slider min={3} max={200} value={customersCount} onValueChange={setCustomersCount}></Slider>
                 {customersCount}
             </Flex>
             <Flex minWidth="300px" align={"center"} gap="4" pt="2">
