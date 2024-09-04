@@ -4,6 +4,7 @@ export default function scanSim(
   averageCustomerRequestSize:number,
   simRuns:number
 ) {
+
   // inputs
   let scanTime = 5; // time per scan (s)
 
@@ -13,6 +14,7 @@ export default function scanSim(
 
   // intermediates
   let simDuration = (7 * 24 * 60 * 60) / secsPerTick; // seconds in a week/secsPerTick
+  
 
   interface ScanCustomer {
     jobsCount: number;
@@ -64,12 +66,16 @@ export default function scanSim(
         if (customers[customerPointer].jobsCount > 0) {
           customers[customerPointer].jobsCount--; // finish a scan
         } else {
-          // if done, set the finishedTick and remove from look
+          // if done, set the finishedTick and remove from loop
           customers[customerPointer].finishedTick = currentTick;
+          // Dont' pass zero for scans faster than secsPerTick
+          if(customers[customerPointer].finishedTick === customers[customerPointer].arrivalTick){
+            customers[customerPointer].finishedTick = currentTick+1;
+          }
         }
-      }
-      currentTick++;
+      }  
     }
+    currentTick++;
   };
 
   const run = () => {
