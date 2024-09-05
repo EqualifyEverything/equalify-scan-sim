@@ -169,6 +169,14 @@ export default function Sim() {
             ></Slider>
             {simRuns}
           </Flex>
+          <Separator
+            style={{ width: "100%", marginTop: "1em", marginBottom: "1em" }}
+          />
+          <Text size="2">Estimated Cost: ${  (14+(14*workers[0])).toFixed(2) }/mo</Text>
+          <Separator
+            style={{ width: "100%", marginTop: "1em", marginBottom: "1em" }}
+          />
+
         </Box>
         <Box>
           <Button onClick={run}>Run</Button>
