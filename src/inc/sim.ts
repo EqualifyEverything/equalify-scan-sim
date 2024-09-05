@@ -1,10 +1,26 @@
-export default function scanSim(
-  workers:number,
-  customersCount:number,
-  averageCustomerRequestSize:number,
-  simRuns:number
-) {
+interface Results {
+    data: Array<ResultsRecord[]>;
+    perf: String;
+    jobsChart: Array<Array<number>>;
+  }
 
+  interface ScanCustomer {
+    jobsCount: number;
+    arrivalTick: number;
+    finishedTick: number | null;
+    startingJobsCount: number;
+  }
+
+ export interface ResultsRecord { 
+    name: number, val: number|null 
+}
+
+export default function scanSim(
+  workers: number,
+  customersCount: number,
+  averageCustomerRequestSize: number,
+  simRuns: number
+):Promise<Results> {
   // inputs
   let scanTime = 5; // time per scan (s)
 
@@ -14,31 +30,29 @@ export default function scanSim(
 
   // intermediates
   let simDuration = (7 * 24 * 60 * 60) / secsPerTick; // seconds in a week/secsPerTick
-  
+  let sampleInterval = Math.round(simDuration / 200); // get ~100 datapoints
+  console.log(sampleInterval);
 
-  interface ScanCustomer {
-    jobsCount: number;
-    arrivalTick: number;
-    finishedTick: number | null;
-    startingJobsCount: number;
-  }
+
 
   const customers: ScanCustomer[] = [];
+  const jobsCountHistory: number[] = [];
+  const results: Results = { data: [], perf: "", jobsChart: [] };
 
-  const results = {};
-
-  function generateCustomer(jobsCount?:number){
-    const jobs = jobsCount ? jobsCount : Math.round(randn_bm(0, averageCustomerRequestSize * 2, 1));
+  function generateCustomer(jobsCount?: number) {
+    const jobs = jobsCount
+      ? jobsCount
+      : Math.round(randn_bm(0, averageCustomerRequestSize * 2, 1));
     return {
-        jobsCount: jobs,
-        startingJobsCount: jobs,
-        arrivalTick: Math.round(Math.random() * simDuration),
-        finishedTick: null,
-    }
+      jobsCount: jobs,
+      startingJobsCount: jobs,
+      arrivalTick: Math.round(Math.random() * simDuration),
+      finishedTick: null,
+    };
   }
 
   const provisionCustomers = () => {
-    customers.splice(0,customers.length);
+    customers.splice(0, customers.length);
     // Control customers
     customers.push(generateCustomer(1));
     customers.push(generateCustomer(500));
@@ -52,6 +66,19 @@ export default function scanSim(
 
   let customerPointer = 0;
   const advanceTick = () => {
+
+    // Add the current jobs in queue to the sample history
+    if (currentTick % sampleInterval === 0) {
+      let currentActiveJobs = 0;
+      customers.forEach((customer) => {
+        if (currentTick >= customer.arrivalTick) {
+          currentActiveJobs += customer.jobsCount;
+        }
+      });
+      jobsCountHistory.push(currentActiveJobs);
+    }
+
+    // Process each worker's jobs
     for (let i = 0; i < workers; i++) {
       // advance the pointer
       customerPointer++;
@@ -69,14 +96,24 @@ export default function scanSim(
           // if done, set the finishedTick and remove from loop
           customers[customerPointer].finishedTick = currentTick;
           // Dont' pass zero for scans faster than secsPerTick
-          if(customers[customerPointer].finishedTick === customers[customerPointer].arrivalTick){
-            customers[customerPointer].finishedTick = currentTick+1;
+          if (
+            customers[customerPointer].finishedTick ===
+            customers[customerPointer].arrivalTick
+          ) {
+            customers[customerPointer].finishedTick = currentTick + 1;
           }
         }
-      }  
+      }
     }
+
     currentTick++;
   };
+
+  function simReset() {
+    currentTick = 0;
+    customerPointer = 0;
+    jobsCountHistory.splice(0, jobsCountHistory.length);
+  }
 
   const run = () => {
     let start = performance.now();
@@ -87,39 +124,36 @@ export default function scanSim(
       for (let i = 0; i < simDuration; i++) {
         advanceTick();
       }
-      console.log(customers);
       // run finished, process results
-      analyseResults();
+      results.jobsChart.push(jobsCountHistory.slice());
+      results.data.push(saveResults());
+      
+      simReset();
     }
     let delta = performance.now() - start;
-
-    console.log(`Finished, took: ${delta.toFixed(2)}ms`);
+    results.perf = `Finished, took: ${delta.toFixed(2)}ms`;
   };
 
-  const analyseResults = () => {
-    // TODO generate report
+  const saveResults = () => {
+
     // get 1,500,500
-    const exampleCustomers = { '1' : 0, '500' : 0 , '5000': 0};
-    Object.keys(exampleCustomers).forEach(key => {
-      const scan = customers.find((obj)=>obj.startingJobsCount===Number(key));
-      if(scan && scan.finishedTick){
-        exampleCustomers[key as keyof typeof exampleCustomers]  = (scan.finishedTick-scan.arrivalTick)*secsPerTick;
+    const exampleCustomers:ResultsRecord[] = [ { name: 1, val: -1 }, { name: 500, val: -1 }, { name: 5000, val: -1 } ];
+    exampleCustomers.forEach((customer) => {
+      const scan = customers.find(
+        (obj) => obj.startingJobsCount === Number(customer.name)
+      );
+      if (scan && scan.finishedTick) {
+        customer.val =
+          (scan.finishedTick - scan.arrivalTick) * secsPerTick;
       }
     });
-    console.log(exampleCustomers);
-    /*
-   - multiply values by secsPerTick to convert to seconds!
-   - calculate average job completion time (in minutes)
-   - generate jobs graph (simple array from sampling?)
-   - generate customer timeline 
-   - push to results array
-  */
-    return null;
+   
+    return exampleCustomers;
   };
 
   run();
   return new Promise((resolve, reject) => {
-    resolve(true);
+    resolve(results);
   });
 }
 
