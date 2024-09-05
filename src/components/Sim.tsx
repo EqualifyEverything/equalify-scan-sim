@@ -3,16 +3,15 @@ import {
   Button,
   Card,
   Container,
-  DataList,
+ 
   Flex,
   Grid,
   Heading,
-  Section,
   Separator,
   Slider,
   Text,
 } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import scanSim, { ResultsRecord } from "../inc/sim";
 import { formatDuration, intervalToDuration } from "date-fns";
 import { SparklinesLine, Tooltip } from "@lueton/react-sparklines";

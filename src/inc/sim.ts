@@ -22,7 +22,7 @@ export default function scanSim(
   simRuns: number
 ):Promise<Results> {
   // inputs
-  let scanTime = 5; // time per scan (s)
+  //let scanTime = 5; // time per scan (s)
 
   // consts
   let secsPerTick = 5; // seconds per tick (s)
@@ -158,9 +158,9 @@ export default function scanSim(
 }
 
 // Exponential random number generator
-function randomExponential(lambda: number) {
+/* function randomExponential(lambda: number) {
   return -Math.log(1 - Math.random()) / lambda;
-}
+} */
 
 // Standard Normal variate using Box-Muller transform.
 function randn_bm(min: number, max: number, skew: number) {
